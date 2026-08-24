@@ -73,7 +73,7 @@ Select and start the matching executable using the copy/paste commands in the ro
 curl --fail http://localhost:8080/healthz
 ```
 
-Normal mode has no artificial request limit or injected failures. Add `--enable-fault-profile=true` to the matching startup command only for optional resilience testing.
+Normal mode has no artificial request limit or injected failures. Resilience is required of the connector; add `--enable-fault-profile=true` to the matching startup command to test its retry behavior.
 
 At startup, `mock-crm` exposes a deterministic materialized current state for the fixed 30 UTC days before `--simulation-start`. HTTP requests only observe it. Repeated full pulls and inclusive incremental pulls remain unchanged until the operator presses Enter on an empty line between completed pulls. Enter simulates one UTC day and atomically publishes a complete successor state across operational resources. Press Enter only between pulls; consistent pagination across a publication is intentionally unsupported.
 
@@ -105,15 +105,15 @@ Pagination itself does not skip or repeat boundary items. Inclusive `since` mean
 
 Malformed or repeated query values and unknown query keys return JSON `400`; unknown paths return `404`; unsupported methods return `405`.
 
-### Retry convention
+### Required retry behavior
 
-With the optional fault profile, `/v1` may return `429` or retryable `503`. Both include:
+The connector must retry `429` and all `5xx` responses by repeating the identical page request. With the fault profile, `/v1` injects `429` or `503`; both include:
 
 ```text
 Retry-After-Ms: <positive integer>
 ```
 
-The JSON body contains the same positive integer as `retry_after_ms`. Treat the header as milliseconds, wait at least that long, and retry the same request. Standard `Retry-After` is not part of this API. The fault cadence is intentionally unspecified.
+The JSON body contains the same positive integer as `retry_after_ms`. Treat the header as milliseconds and wait at least that long. For a `5xx` without the header, use a documented bounded backoff. Exhausted retries fail the sync without publishing successful completion state. Standard `Retry-After` is not part of this API, and fault cadence is intentionally unspecified.
 
 ## CRM vocabulary and relationships
 

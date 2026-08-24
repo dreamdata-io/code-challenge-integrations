@@ -114,4 +114,4 @@ Because `since` is inclusive, all records tied at that timestamp are eligible to
 
 ## Retry responses
 
-Normal mode has no artificial throttling or injected failures. With the optional fault profile, `/v1` can return retryable `429` or `503` responses. Both carry the custom positive-integer header `Retry-After-Ms` and an identical JSON `retry_after_ms` field. Wait at least that many **milliseconds** and retry the identical request. Standard `Retry-After` is never used.
+Normal mode has no artificial throttling or injected failures. With the opt-in fault profile, `/v1` can return retryable `429` or `503` responses. Both carry the custom positive-integer header `Retry-After-Ms` and an identical JSON `retry_after_ms` field. Wait at least that many **milliseconds** and retry the identical request. Standard `Retry-After` is never used. The assignment additionally requires bounded retries for any other `5xx` response.

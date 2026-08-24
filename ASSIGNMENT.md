@@ -67,7 +67,19 @@ Follow every `next_page` until it is absent. Timestamp ties can cross page bound
 
 `since` is inclusive, so exact `(updated_at,id)` boundary records may appear again between runs. Prefer safe replay over skipped records and explain your recovery/duplication trade-off in a short decision note.
 
-Optional `429`/`503` fault-profile resilience is welcome but not required. See [`docs/crm-api.md`](docs/crm-api.md) for its custom `Retry-After-Ms` contract.
+## Required resilience
+
+Retry `429` and all `5xx` responses. A retry must repeat the identical page request and must not advance state past unprocessed records.
+
+When a response includes a positive `Retry-After-Ms` header, wait at least that many **milliseconds** before retrying. The mock's injected `429` and `503` responses include this header and the same `retry_after_ms` value in their JSON body. For a `5xx` without that header, use a documented bounded backoff policy. If retries are exhausted, fail the sync, exit non-zero, and do not emit state that claims the incomplete pull succeeded.
+
+The supplied binary still supports the fault profile, disabled by default. Enable it when testing resilience:
+
+```sh
+"$MOCK_CRM" --listen=:8080 --simulation-start=2031-02-03 --enable-fault-profile=true
+```
+
+The profile affects `/v1` only; it does not advance simulation state. Its fault cadence is intentionally unspecified. See [`docs/crm-api.md`](docs/crm-api.md) for the exact retry response format and [`docs/local-mock.md`](docs/local-mock.md) for flag details.
 
 ## Operator-controlled simulation and required validation
 
@@ -119,10 +131,12 @@ Your repository must contain:
 - [ ] Stdout contains only valid record/state NDJSON; diagnostics go to stderr.
 - [ ] Record messages preserve complete live objects and tombstones.
 - [ ] My checkpoint handles inclusive timestamp ties without skipping records.
+- [ ] My connector retries `429` and `5xx` responses, honors `Retry-After-Ms`, uses bounded fallback backoff, and fails safely when retries are exhausted.
+- [ ] I tested the connector with `mock-crm --enable-fault-profile=true`.
 - [ ] For every implemented entity, I retrieved an initial full pull and at least 10 Enter-driven incremental ticks from one running mock process.
 - [ ] I recorded important design/recovery decisions.
 - [ ] I included tests and a concise credential-free `AI_USE.md`.
 
 ## Technical review
 
-The submission is followed by a **30–45 minute** code review. Be ready to discuss scope, structure, dependencies, pagination, complete-record handling, checkpoint safety, recovery trade-offs, ten-tick validation, and how you checked AI-assisted work. Slides, video, screenshots, and a prescribed test framework are not required.
+The submission is followed by a **30–45 minute** code review. Be ready to discuss scope, structure, dependencies, pagination, complete-record handling, checkpoint safety, retry/backoff behavior, recovery trade-offs, ten-tick validation, and how you checked AI-assisted work. Slides, video, screenshots, and a prescribed test framework are not required.

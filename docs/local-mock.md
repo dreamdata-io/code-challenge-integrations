@@ -25,7 +25,7 @@ The readiness endpoint is outside `/v1`. It observes readiness only and never ch
 | `--simulation-start` | current UTC date | UTC date (`YYYY-MM-DD`) immediately after the fixed 30-day initial history |
 | `--enable-fault-profile` | `false` | install throttling/retryable-failure middleware on `/v1` |
 
-Normal mode has no artificial request limit or injected failures. Use the fault profile only for optional resilience testing:
+Normal mode has no artificial request limit or injected failures. Enable the fault profile to test the connector's required retry behavior:
 
 ```sh
 "$MOCK_CRM" --listen=:8080 --simulation-start=2031-02-03 --enable-fault-profile=true

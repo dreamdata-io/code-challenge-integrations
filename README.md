@@ -77,6 +77,8 @@ Press Enter only between completed pulls; pagination across a publication is int
 
 Keep this mock process alive for the required validation: for every implemented entity, perform an initial full pull and retrieve at least 10 Enter-driven incremental ticks using the prior emitted state each time. You can retrieve several entities after each Enter press. Your connector process may restart freely; restarting the mock starts a fresh scenario and invalidates old connector checkpoints.
 
+Resilience is required: retry `429` and `5xx` responses, honor `Retry-After-Ms`, and fail safely after a documented bounded retry policy. Test this by restarting the matching mock binary with `--enable-fault-profile=true`; the profile is disabled by default and affects `/v1` only. See the assignment and [`docs/local-mock.md`](docs/local-mock.md) for the exact command.
+
 ## Maintainer build
 
 With [mise](https://mise.jdx.dev/) and Go available, build all supplied mock CRM targets from source into this repository's generated `bin/` directory:
