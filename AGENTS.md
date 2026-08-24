@@ -18,13 +18,14 @@ Start with the root [`README.md`](README.md) to select the supplied platform bin
 ## Working boundaries
 
 - Build a Go CLI source connector; do not modify or replace the supplied `mock-crm` executable.
-- Implement at least one declared entity through `--entity`; all six are welcome but not required. Document implemented and intentionally omitted entities.
+- Implement at least one declared entity through `--entity`. Strongly encourage all six: they share one collection protocol and should be realistic within the timebox. Document implemented and intentionally omitted entities.
 - Keep the implementation within the 2–4 hour challenge scope selected by the candidate.
 - Prefer the Go standard library. Add only a small number of justified dependencies.
 - Do not add a blob store, cloud deployment, mock authentication service, or dependency on evaluator-only behavior.
 - Treat IDs as opaque UUIDs. Do not infer fixture ordinals, ordering, or business meaning from UUID text.
 - Use only the documented candidate-facing API. There is no debug, reset, or evaluator-oracle endpoint.
 - Keep credentials out of source, logs, commits, generated files, and AI-use notes.
+- The candidate submits from a new private repository under their own GitHub account, not only from the supplied repository, and adds `paddie` as a collaborator (Read role where available).
 
 ## Required CLI contract
 
@@ -139,7 +140,7 @@ The fixed pipelines and ordered stages are:
 
 ## Validation and documentation
 
-Validate by running the documented CLI invocation and inspecting its NDJSON record/state output. At minimum, test one full run, press Enter between completed pulls, and test a later incremental run while the same mock process remains alive.
+For every implemented entity, validate one full pull followed by at least 10 incremental simulation ticks while the same mock process remains alive. For each tick, press Enter once between completed pulls, wait for publication confirmation, then invoke the connector with that entity's prior emitted state. Several entities may be retrieved after each Enter press. Fixed `pipeline` and `stage` resources may legitimately return only inclusive boundary replays.
 
 Document:
 

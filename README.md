@@ -1,6 +1,8 @@
 # CRM source connector challenge
 
-Start here. This private repository is your workspace for the challenge: add your Go connector, tests, documentation, decision notes, and `AI_USE.md` here, then complete the checklist in [`ASSIGNMENT.md`](ASSIGNMENT.md). Extend this README with your connector's exact build, full-run, and incremental-run commands so it remains the repository landing page for review.
+Start here. Clone this challenge repository locally, then create a **new private repository under your own GitHub account** and push your completed work there. Add GitHub user **`paddie`** as a collaborator (select the **Read** role where available), and confirm the repository shows `paddie` as active or invited. The invitation may still be pending when you submit. Do not submit only in the supplied challenge repository.
+
+Add your Go connector, tests, documentation, decision notes, and `AI_USE.md`, then complete the checklist in [`ASSIGNMENT.md`](ASSIGNMENT.md). Extend this README with your connector's exact build, full-run, and incremental-run commands so it remains the repository landing page for review.
 
 The supplied `mock-crm` executables are challenge infrastructure. Their source is intentionally absent; do not modify or replace them.
 
@@ -73,7 +75,7 @@ Follow `next_page` until it is absent. Then return to the mock terminal, press *
 
 Press Enter only between completed pulls; pagination across a publication is intentionally unsupported. In connector code, derive the checkpoint from the greatest `updated_at` safely emitted, not merely observed. See [`docs/local-mock.md`](docs/local-mock.md) for the complete terminal and process lifecycle.
 
-Keep this mock process alive while testing a full run and later incremental run. Your connector process may restart freely; restarting the mock starts a fresh scenario and invalidates old connector checkpoints.
+Keep this mock process alive for the required validation: for every implemented entity, perform an initial full pull and retrieve at least 10 Enter-driven incremental ticks using the prior emitted state each time. You can retrieve several entities after each Enter press. Your connector process may restart freely; restarting the mock starts a fresh scenario and invalidates old connector checkpoints.
 
 ## Maintainer build
 
