@@ -25,7 +25,7 @@ Start with the root [`README.md`](README.md) to select the supplied platform bin
 - Treat IDs as opaque UUIDs. Do not infer fixture ordinals, ordering, or business meaning from UUID text.
 - Use only the documented candidate-facing API. There is no debug, reset, or evaluator-oracle endpoint.
 - Keep credentials out of source, logs, commits, generated files, and AI-use notes.
-- The candidate submits from a new private repository under their own GitHub account, not only from the supplied repository, and adds `paddie` as a collaborator (Read role where available).
+- The candidate submits from a new private repository under their own GitHub account, not only from the supplied repository, adds `paddie` as a collaborator (Read role where available), then emails `prm@dreamdata.io` with the repository URL and submitted commit hash.
 
 ## Required CLI contract
 

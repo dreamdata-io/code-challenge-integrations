@@ -93,6 +93,7 @@ Submit from a **private repository owned by your own GitHub account**, not only 
 2. Create a new private repository under your GitHub account and push your completed challenge to it. A private repository import or duplicate is also fine.
 3. Add GitHub user **`paddie`** as a collaborator on that repository. Select the **Read** role where GitHub offers repository roles.
 4. On the repository's collaborator page, confirm `paddie` is listed as active or invited, and confirm the exact commit you are submitting has been pushed. The invitation may still be awaiting acceptance.
+5. After inviting `paddie`, email **prm@dreamdata.io** with the repository URL and submitted commit hash so we know the challenge is ready for review.
 
 If you use organization-funded AI access, send it only the local synthetic challenge materials. Do not commit credentials or the provided API key; a private transcript is not required.
 
@@ -110,6 +111,7 @@ Your repository must contain:
 
 - [ ] I created a private submission repository under my own GitHub account and pushed the submitted commit.
 - [ ] I added `paddie` as a collaborator (Read role where available), confirmed the active or pending invitation, and pushed the submitted commit.
+- [ ] I emailed `prm@dreamdata.io` after inviting `paddie`, including the repository URL and submitted commit hash.
 - [ ] I documented exact build, mock startup, full-run, and incremental-run commands.
 - [ ] I documented implemented and intentionally omitted entities.
 - [ ] A run without prior state completes a full pull through the final page.

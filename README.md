@@ -1,6 +1,6 @@
 # CRM source connector challenge
 
-Start here. Clone this challenge repository locally, then create a **new private repository under your own GitHub account** and push your completed work there. Add GitHub user **`paddie`** as a collaborator (select the **Read** role where available), and confirm the repository shows `paddie` as active or invited. The invitation may still be pending when you submit. Do not submit only in the supplied challenge repository.
+Start here. Clone this challenge repository locally, then create a **new private repository under your own GitHub account** and push your completed work there. Add GitHub user **`paddie`** as a collaborator (select the **Read** role where available), and confirm the repository shows `paddie` as active or invited. Then email **prm@dreamdata.io** with the repository URL and submitted commit hash. The invitation may still be pending when you submit. Do not submit only in the supplied challenge repository.
 
 Add your Go connector, tests, documentation, decision notes, and `AI_USE.md`, then complete the checklist in [`ASSIGNMENT.md`](ASSIGNMENT.md). Extend this README with your connector's exact build, full-run, and incremental-run commands so it remains the repository landing page for review.
 
