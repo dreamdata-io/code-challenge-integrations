@@ -1,0 +1,794 @@
+openapi: 3.0.3
+info:
+  title: Mock CRM API
+  version: 1.0.0
+  description: Local Mock CRM collection protocol specification
+servers:
+  - url: /
+    description: Mock CRM server root
+paths:
+  /v1/companies:
+    get:
+      summary: List companies
+      operationId: getCompanies
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/OrderParam'
+        - name: since
+          in: query
+          description: Inclusive cutoff as non-negative decimal Unix epoch milliseconds
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        '200':
+          description: Successful collection retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyPage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limited
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/contacts:
+    get:
+      summary: List contacts
+      operationId: getContacts
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/OrderParam'
+        - $ref: '#/components/parameters/TimestampSinceParam'
+      responses:
+        '200':
+          description: Successful collection retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactPage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limited
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/leads:
+    get:
+      summary: List leads
+      operationId: getLeads
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/OrderParam'
+        - $ref: '#/components/parameters/TimestampSinceParam'
+      responses:
+        '200':
+          description: Successful collection retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadPage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limited
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/deals:
+    get:
+      summary: List deals
+      operationId: getDeals
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/OrderParam'
+        - $ref: '#/components/parameters/TimestampSinceParam'
+      responses:
+        '200':
+          description: Successful collection retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealPage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limited
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/pipelines:
+    get:
+      summary: List pipelines
+      operationId: getPipelines
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/OrderParam'
+        - $ref: '#/components/parameters/TimestampSinceParam'
+      responses:
+        '200':
+          description: Successful collection retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelinePage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limited
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/stages:
+    get:
+      summary: List stages
+      operationId: getStages
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/OrderParam'
+        - $ref: '#/components/parameters/TimestampSinceParam'
+      responses:
+        '200':
+          description: Successful collection retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StagePage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limited
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily unavailable
+          headers:
+            Retry-After-Ms:
+              description: Delay in milliseconds before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Zero-based page number
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      description: Number of records per page (1 to 500)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+    OrderParam:
+      name: order
+      in: query
+      description: Result sort order
+      required: false
+      schema:
+        type: string
+        enum:
+          - asc
+          - desc
+        default: asc
+    TimestampSinceParam:
+      name: since
+      in: query
+      description: Inclusive cutoff as UTC RFC 3339 timestamp with millisecond precision
+      required: false
+      schema:
+        type: string
+        format: date-time
+
+  schemas:
+    Company:
+      type: object
+      description: Company account record
+      required:
+        - id
+        - changed_at
+        - deleted
+        - name
+        - domain
+        - lifecycle
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Opaque unique identifier
+        changed_at:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Unix epoch milliseconds timestamp of latest change
+        deleted:
+          type: boolean
+          description: Whether the record is deleted
+        name:
+          type: string
+          description: Company account name
+        domain:
+          type: string
+          description: Synthetic domain name
+        lifecycle:
+          type: string
+          enum:
+            - lead
+            - opportunity
+            - customer
+          description: Account lifecycle status
+
+    Contact:
+      type: object
+      description: Person associated with a company
+      required:
+        - id
+        - created_at
+        - updated_at
+        - deleted
+        - label
+        - company_id
+        - lifecycle
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Opaque unique identifier
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp in UTC RFC 3339 format
+        updated_at:
+          type: string
+          format: date-time
+          description: Update timestamp in UTC RFC 3339 format
+        deleted:
+          type: boolean
+          description: Whether the record is deleted
+        label:
+          type: string
+          description: Contact display label
+        company_id:
+          type: string
+          format: uuid
+          description: Associated company identifier
+        lifecycle:
+          type: string
+          enum:
+            - lead
+            - opportunity
+            - customer
+          description: Contact lifecycle status matching company
+
+    Lead:
+      type: object
+      description: Potential customer record
+      required:
+        - id
+        - created_at
+        - updated_at
+        - deleted
+        - label
+        - company_id
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Opaque unique identifier
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp in UTC RFC 3339 format
+        updated_at:
+          type: string
+          format: date-time
+          description: Update timestamp in UTC RFC 3339 format
+        deleted:
+          type: boolean
+          description: Whether the record is deleted
+        label:
+          type: string
+          description: Lead display label
+        company_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Associated company identifier, or null if unassociated
+
+    Deal:
+      type: object
+      description: Opportunity deal record
+      required:
+        - id
+        - created_at
+        - updated_at
+        - deleted
+        - label
+        - amount
+        - company_id
+        - contact_ids
+        - pipeline
+        - pipeline_stage
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Opaque unique identifier
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp in UTC RFC 3339 format
+        updated_at:
+          type: string
+          format: date-time
+          description: Update timestamp in UTC RFC 3339 format
+        deleted:
+          type: boolean
+          description: Whether the record is deleted
+        label:
+          type: string
+          description: Deal display label
+        amount:
+          type: string
+          description: Decimal-formatted deal value
+        company_id:
+          type: string
+          format: uuid
+          description: Associated company identifier
+        contact_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Associated contact identifiers (0 to 3)
+        pipeline:
+          type: string
+          description: Canonical pipeline identifier
+        pipeline_stage:
+          type: string
+          description: Current pipeline stage identifier
+
+    Pipeline:
+      type: object
+      description: Pipeline reference data
+      required:
+        - id
+        - created_at
+        - updated_at
+        - deleted
+        - name
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Opaque unique identifier
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp in UTC RFC 3339 format
+        updated_at:
+          type: string
+          format: date-time
+          description: Update timestamp in UTC RFC 3339 format
+        deleted:
+          type: boolean
+          description: Whether the record is deleted
+        name:
+          type: string
+          description: Canonical pipeline name
+
+    Stage:
+      type: object
+      description: Pipeline stage reference data
+      required:
+        - id
+        - created_at
+        - updated_at
+        - deleted
+        - name
+        - pipeline
+        - position
+        - category
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Opaque unique identifier
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp in UTC RFC 3339 format
+        updated_at:
+          type: string
+          format: date-time
+          description: Update timestamp in UTC RFC 3339 format
+        deleted:
+          type: boolean
+          description: Whether the record is deleted
+        name:
+          type: string
+          description: Globally unique stage name
+        pipeline:
+          type: string
+          description: Canonical pipeline name
+        position:
+          type: integer
+          minimum: 1
+          description: One-based stage ordering position within pipeline
+        category:
+          type: string
+          enum:
+            - open
+            - closed_won
+            - closed_lost
+          description: Stage outcome classification
+
+    CompanyPage:
+      type: object
+      description: Paged collection response for companies
+      required:
+        - data
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Company'
+        next_page:
+          type: integer
+          minimum: 1
+          description: Next page number if more pages exist
+
+    ContactPage:
+      type: object
+      description: Paged collection response for contacts
+      required:
+        - data
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        next_page:
+          type: integer
+          minimum: 1
+          description: Next page number if more pages exist
+
+    LeadPage:
+      type: object
+      description: Paged collection response for leads
+      required:
+        - data
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lead'
+        next_page:
+          type: integer
+          minimum: 1
+          description: Next page number if more pages exist
+
+    DealPage:
+      type: object
+      description: Paged collection response for deals
+      required:
+        - data
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Deal'
+        next_page:
+          type: integer
+          minimum: 1
+          description: Next page number if more pages exist
+
+    PipelinePage:
+      type: object
+      description: Paged collection response for pipelines
+      required:
+        - data
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pipeline'
+        next_page:
+          type: integer
+          minimum: 1
+          description: Next page number if more pages exist
+
+    StagePage:
+      type: object
+      description: Paged collection response for stages
+      required:
+        - data
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Stage'
+        next_page:
+          type: integer
+          minimum: 1
+          description: Next page number if more pages exist
+
+    ErrorResponse:
+      type: object
+      description: Error payload
+      required:
+        - error
+      additionalProperties: false
+      properties:
+        error:
+          type: string
+          description: Standard error code
+        retry_after_ms:
+          type: integer
+          minimum: 0
+          description: Suggested retry delay in milliseconds

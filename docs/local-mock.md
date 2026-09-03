@@ -33,9 +33,9 @@ Normal mode has no artificial request limit or injected failures. Enable the fau
 
 ## Stable current state and operator advancement
 
-At startup, the service materializes the current CRM state produced by the fixed 30 UTC days before `--simulation-start`. Each collection contains at most one current live record or tombstone per ID. Pipelines and stages are fixed reference data.
+At startup, the service materializes the current CRM state produced by the fixed 30 UTC days before `--simulation-start`. Each collection contains at most one current record per ID, whether live or deleted. Pipelines and stages are fixed reference data.
 
-HTTP requests only observe this current state. Repeating a full pull or an inclusive incremental pull produces the same records until the operator advances the simulation. A full pull omits `since`; an incremental pull includes a checkpoint and returns current records whose `updated_at` is greater than or equal to it.
+HTTP requests only observe this current state. Repeating a full pull or an inclusive incremental pull produces the same records until the operator advances the simulation. A full pull omits `since`; an incremental pull includes a checkpoint and returns current records whose change instant is greater than or equal to it (`changed_at` epoch milliseconds for companies, `updated_at` RFC 3339 for other resources).
 
 Complete a full pull by following `next_page` until it is absent. For example:
 
@@ -44,10 +44,10 @@ curl --fail 'http://localhost:8080/v1/companies?page=0&size=500&order=asc'
 # Continue with page=1, page=2, ... while next_page is present.
 ```
 
-After the pull finishes, derive a checkpoint from the greatest `updated_at` that the client safely emitted. Before advancement, an inclusive request at that checkpoint returns only current records tied at the boundary:
+After the pull finishes, derive a checkpoint from the greatest change instant that the client safely emitted (`changed_at` for companies, `updated_at` for others). Before advancement, an inclusive request at that checkpoint returns only current records tied at the boundary:
 
 ```sh
-CHECKPOINT='<greatest updated_at from the completed pull>'
+CHECKPOINT='<greatest changed_at epoch milliseconds from the completed companies pull>'
 curl --fail --get 'http://localhost:8080/v1/companies' \
   --data-urlencode page=0 --data-urlencode size=500 \
   --data-urlencode order=asc --data-urlencode "since=$CHECKPOINT"
@@ -65,7 +65,7 @@ Keep one mock process alive while testing a full pull, Enter advancement, and a 
 
 Blank terminal lines are the only advancement input. Non-empty lines are ignored. Redirected stdin follows the same rule. EOF or a stdin read error disables further Enter advancement while HTTP continues serving. Ctrl-C/SIGTERM gracefully shuts down HTTP.
 
-Stopping and restarting the mock is a full reset: the selected/default simulation date is materialized again and all operator advancement is discarded. Discard connector checkpoints from the old process and begin with a full pull. The same explicit simulation start and the same number of Enter presses reproduce the same state.
+Stopping and restarting the mock is a full reset: the selected/default simulation date is materialized again and all operator advancement is discarded. Discard connector checkpoints from the old process and begin with a full pull. Old process checkpoints and checkpoints from before the company-native schema clean break are explicitly invalid. The same explicit simulation start and the same number of Enter presses reproduce the same state.
 
 There is no state file, database, writable data directory, reset endpoint, debug/oracle endpoint, authentication, Docker dependency, or blob-store emulator.
 
@@ -75,5 +75,5 @@ There is no state file, database, writable data directory, reset endpoint, debug
 - `429`/`503` in optional fault mode: read `Retry-After-Ms` as milliseconds and retry the identical request after waiting at least that long.
 - No new incremental records: confirm Enter was sent as an empty line, wait for the completed-day confirmation, and keep the same mock process running.
 - Unexpected page results: confirm the operator did not press Enter during the pull, then restart that pull from page zero.
-- Unexpected inclusive duplicates: records exactly tied at `since` are intentionally returned again; consumers may de-duplicate exact `(updated_at,id)` replays.
+- Unexpected inclusive duplicates: records exactly tied at `since` are intentionally returned again; consumers may de-duplicate exact boundary replays.
 - Startup, terminal activity, and graceful shutdown are logged to stderr. API data is returned only over HTTP.

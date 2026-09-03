@@ -1,6 +1,6 @@
 # Mock CRM API
 
-The mock serves unauthenticated JSON over HTTP. All IDs are opaque UUIDs and all timestamps are UTC RFC 3339 values with exactly millisecond precision. Do not infer ordering or meaning from UUID text.
+The mock serves unauthenticated JSON over HTTP. All IDs are opaque UUIDs. Non-company timestamps are UTC RFC 3339 values with exactly millisecond precision, while company change timestamps are integer Unix epoch milliseconds. Do not infer ordering or meaning from UUID text.
 
 ## First request
 
@@ -13,7 +13,7 @@ curl --fail 'http://localhost:8080/v1/companies?page=0&size=2'
 A response has this shape (the values below are invented illustrations, not fixture values):
 
 ```json
-{"data":[{"id":"<opaque-company-id-1>","created_at":"2025-01-01T00:00:00.000Z","updated_at":"2025-01-01T00:00:00.000Z","deleted":false,"name":"Example Company One","domain":"example-one.invalid","lifecycle":"lead"},{"id":"<opaque-company-id-2>","created_at":"2025-01-01T00:00:00.000Z","updated_at":"2025-01-01T00:00:00.000Z","deleted":false,"name":"Example Company Two","domain":"example-two.invalid","lifecycle":"opportunity"}],"next_page":1}
+{"data":[{"id":"<opaque-company-id-1>","changed_at":1735689600000,"deleted":false,"name":"Example Company One","domain":"example-one.invalid","lifecycle":"lead"},{"id":"<opaque-company-id-2>","changed_at":1735689600000,"deleted":false,"name":"Example Company Two","domain":"example-two.invalid","lifecycle":"opportunity"}],"next_page":1}
 ```
 
 `next_page` means more pages exist. Continue with its integer value, preserving the same resource, `size`, `since`, and `order`, until a response omits `next_page`. Requests only observe the current materialized state; they never advance the simulation. The operator must not press Enter during a multi-page pull because cross-publication pagination consistency is intentionally unsupported. See [Running the local mock CRM](local-mock.md) for the operator journey.
@@ -30,17 +30,32 @@ Resources are `companies`, `contacts`, `leads`, `deals`, `pipelines`, and `stage
 
 - `page` is zero-based and defaults to `0`.
 - `size` defaults to `100`; valid values are 1–500.
-- `since` is optional and **inclusive**. It is a UTC RFC 3339 timestamp with exactly millisecond precision. Use an emitted record's `updated_at`, not client wall-clock time, as a checkpoint.
-- `order` defaults to `asc`; `desc` reverses the complete `(updated_at, id)` tuple.
+- `since` is optional and **inclusive**.
+  - For `companies`, it accepts non-negative decimal Unix epoch milliseconds. Checkpoints derive from emitted `changed_at`. Non-integer, negative, RFC 3339, or repeated values return JSON `400` with `invalid_since` (or `repeated_query_parameter`).
+  - For `contacts`, `leads`, `deals`, `pipelines`, and `stages`, it is a UTC RFC 3339 timestamp with exactly millisecond precision. Checkpoints derive from emitted `updated_at`. Malformed timestamps or integer epoch values return JSON `400` with `invalid_since`.
+- `order` defaults to `asc`.
+  - For `companies`, it orders by `(changed_at, id)`. `desc` reverses the complete tuple.
+  - For other resources, it orders by `(updated_at, id)`. `desc` reverses the complete tuple.
 - A successful response is `{"data":[...]}` and includes integer `next_page` only when another page exists.
 
-Live records and tombstones share the collection and participate in the same filtering, tuple ordering, and pagination. Timestamp ties are intentional and can cross page boundaries. Page until `next_page` is absent before advancing a checkpoint. While the current state is unchanged, pagination does not skip or repeat boundary items. Inclusive checkpoint replay between separate pulls is normal, so consumers may need to de-duplicate exact `(updated_at,id)` replays.
+Live and deleted records share the collection and participate in the same filtering, tuple ordering, and pagination. Timestamp ties are intentional and can cross page boundaries. Page until `next_page` is absent before advancing a checkpoint. While the current state is unchanged, pagination does not skip or repeat boundary items. Inclusive checkpoint replay between separate pulls is normal, so consumers may need to de-duplicate exact boundary replays. Old process checkpoints or checkpoints from before this clean-break schema change are explicitly invalid; no legacy alias or compatibility mode is supported.
 
 Unknown query keys, repeated scalar values, malformed values, negative pages, and invalid sizes produce JSON `400` responses. Unknown paths are `404`; unsupported methods are `405`.
 
 ## Exact item schemas
 
-Every live item has these common fields:
+Companies have an entity-native schema with integer `changed_at` and neither `created_at` nor `updated_at`:
+
+| Company field | Type | Meaning |
+| --- | --- | --- |
+| `id` | string | Opaque UUID. |
+| `changed_at` | integer | Non-negative 64-bit integer containing Unix epoch milliseconds; the incremental field. |
+| `deleted` | boolean | Exactly `false` for a live item. |
+| `name` | string | Company account name. |
+| `domain` | string | Synthetic domain name. |
+| `lifecycle` | string | Aggregate account lifecycle: `lead`, `opportunity`, or `customer`. |
+
+All other live items (`contacts`, `leads`, `deals`, `pipelines`, `stages`) have these common fields:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
@@ -49,11 +64,10 @@ Every live item has these common fields:
 | `updated_at` | string | UTC RFC 3339 timestamp with millisecond precision; the incremental field. |
 | `deleted` | boolean | Exactly `false` for a live item. |
 
-A live item also has all fields for its resource:
+The other resources add their specific fields:
 
 | Resource | Additional fields |
 | --- | --- |
-| `companies` | `name` string, `domain` string, `lifecycle` string (`lead`, `opportunity`, or `customer`) |
 | `contacts` | `label` string, `company_id` string, `lifecycle` string (`lead`, `opportunity`, or `customer`) |
 | `leads` | `label` string, `company_id` string or `null` |
 | `deals` | `label` string, `amount` decimal string, `company_id` string, `contact_ids` array of zero to three strings, `pipeline` string, `pipeline_stage` string |
@@ -66,10 +80,10 @@ For example, a complete illustrative live lead is:
 {"id":"<opaque-lead-id>","created_at":"2025-01-01T00:00:00.000Z","updated_at":"2025-01-02T00:00:00.000Z","deleted":false,"label":"Example Lead","company_id":null}
 ```
 
-A tombstone for every resource is exactly this minimal object—there is no `created_at` or resource-specific field:
+Deleted records retain every field required by their entity's live schema, with `deleted` set to `true`. Deletion advances `changed_at` for companies and `updated_at` for other entities. Prior domain values (and `created_at` for non-company records) are preserved:
 
 ```json
-{"id":"<opaque-id>","updated_at":"2025-01-03T00:00:00.000Z","deleted":true}
+{"id":"<opaque-company-id>","changed_at":1735862400000,"deleted":true,"name":"Example Company One","domain":"example-one.invalid","lifecycle":"lead"}
 ```
 
 Preserve and emit the complete object returned by the API, whether it is live or deleted.
@@ -92,9 +106,9 @@ At startup, the API exposes a deterministic materialized current state for the f
 - New companies can appear with contacts and deals. New deals begin in the first open stage of one pipeline.
 - A live open deal moves forward through that pipeline's ordered stages without skipping, moving backward, or changing pipeline. It eventually receives a live `closed_won` or `closed_lost` stage and has no later progression updates.
 - Deal outcomes can produce complete company and contact updates when their derived lifecycle changes.
-- When a company is deleted, the company and all of its contacts, associated leads, and deals receive minimal tombstones. A cascaded deal is deleted directly rather than moved to a lost stage.
+- When a company is deleted, the company and all of its contacts, associated leads, and deals are deleted. Deletion retains each record's complete schema and prior domain values with `deleted: true` and an advanced `changed_at` (for companies) or `updated_at` (for contacts, leads, and deals). A cascaded deal is deleted directly rather than moved to a lost stage.
 
-All related resource changes become visible together after publication. Each collection contains only the latest current record or tombstone per ID, so clients that miss multiple days do not receive superseded intermediate versions. A refreshed full pull reads the new current state; an inclusive incremental pull filters that same state. Pipelines and stages remain fixed reference data. The fixed pipelines and ordered stages are:
+All related resource changes become visible together after publication. Each collection contains only the latest current record per ID (live or deleted), so clients that miss multiple days do not receive superseded intermediate versions. A refreshed full pull reads the new current state; an inclusive incremental pull filters that same state. Pipelines and stages remain fixed reference data. The fixed pipelines and ordered stages are:
 
 | Pipeline | Ordered stages |
 | --- | --- |
@@ -104,13 +118,21 @@ All related resource changes become visible together after publication. Each col
 
 ## Incremental request example
 
-A real `since` value must come from the greatest `updated_at` among API records your connector has safely emitted; do not copy the illustrative timestamp below and do not use the client clock. Percent-encode it through your HTTP library:
+A real `since` value must come from the greatest emitted change cursor among API records your connector has safely emitted; do not copy illustrative values and do not use client wall-clock time.
+
+For companies, `since` is the greatest emitted `changed_at` integer in decimal format:
 
 ```text
-GET /v1/companies?page=0&size=100&since=2025-01-02T00%3A00%3A00.000Z&order=asc
+GET /v1/companies?page=0&size=100&since=1735776000000&order=asc
 ```
 
-Because `since` is inclusive, all records tied at that timestamp are eligible to appear again. A safe checkpoint must not pass tied records that have not been made recoverable.
+For other resources, `since` is the greatest emitted `updated_at` timestamp percent-encoded through your HTTP library:
+
+```text
+GET /v1/contacts?page=0&size=100&since=2025-01-02T00%3A00%3A00.000Z&order=asc
+```
+
+Because `since` is inclusive, all records tied at that cursor are eligible to appear again. A safe checkpoint must not pass tied records that have not been made recoverable. Old process checkpoints or checkpoints from before this clean-break schema change are explicitly invalid.
 
 ## Retry responses
 

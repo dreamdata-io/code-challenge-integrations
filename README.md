@@ -2,16 +2,17 @@
 
 Start here. Clone this challenge repository locally, then create a **new private repository under your own GitHub account** and push your completed work there. Add GitHub user **`paddie`** as a collaborator (select the **Read** role where available), and confirm the repository shows `paddie` as active or invited. Then email **prm@dreamdata.io** with the repository URL and submitted commit hash. The invitation may still be pending when you submit. Do not submit only in the supplied challenge repository.
 
-Add your Go connector, tests, documentation, decision notes, and `AI_USE.md`, then complete the checklist in [`ASSIGNMENT.md`](ASSIGNMENT.md). Extend this README with your connector's exact build, full-run, and incremental-run commands so it remains the repository landing page for review.
+Add your Go connector, tests, documentation, decision notes, and `AI_USE.md`, then complete the checklist in [`ASSIGNMENT.md`](ASSIGNMENT.md). Extend this README with your connector's exact build, full-run, incremental-run, and validated-run commands, as well as a concise schema drift-remediation note, so it remains the repository landing page for review. The expected effort is roughly **3–5 hours** of guidance rather than a cutoff; focus on correctness, safety, and reasoning rather than unrelated polish.
 
 The supplied `mock-crm` executables are challenge infrastructure. Their source is intentionally absent; do not modify or replace them.
 
 ## Read before coding
 
 1. [`ASSIGNMENT.md`](ASSIGNMENT.md) — task, baseline success criteria, deliverables, checklist, and technical review.
-2. [`docs/crm-api.md`](docs/crm-api.md) — authoritative HTTP resources, schemas, relationships, pagination, tombstones, and retry contract.
-3. [`docs/local-mock.md`](docs/local-mock.md) — authoritative startup and process-local scenario behavior.
-4. [`AGENTS.md`](AGENTS.md) — concise working agreement for you and coding agents.
+2. [`openapi.yaml`](openapi.yaml) — baseline OpenAPI 3.0 specification for runtime validation.
+3. [`docs/crm-api.md`](docs/crm-api.md) — authoritative HTTP resources, schemas, relationships, pagination, deleted records, and retry contract.
+4. [`docs/local-mock.md`](docs/local-mock.md) — authoritative startup and process-local scenario behavior.
+5. [`AGENTS.md`](AGENTS.md) — concise working agreement for you and coding agents.
 
 If a summary conflicts with the detailed API, follow `docs/crm-api.md`; for executable behavior and flags, follow `docs/local-mock.md`. Ask rather than inventing unspecified behavior.
 
@@ -62,10 +63,10 @@ curl --fail http://localhost:8080/healthz
 curl --fail 'http://localhost:8080/v1/companies?page=0&size=2'
 ```
 
-Follow each `next_page` until it is absent. HTTP requests never advance the simulation, so repeated full and inclusive incremental pulls remain unchanged. After the full pull completes, save its greatest `updated_at` and make an inclusive boundary pull:
+Follow each `next_page` until it is absent. HTTP requests never advance the simulation, so repeated full and inclusive incremental pulls remain unchanged. After the full pull completes, save its greatest change cursor (`changed_at` epoch milliseconds for companies, `updated_at` RFC 3339 for other resources) and make an inclusive boundary pull:
 
 ```sh
-CHECKPOINT='<greatest updated_at from the completed full pull>'
+CHECKPOINT='<greatest changed_at epoch milliseconds from the completed full companies pull>'
 curl --fail --get 'http://localhost:8080/v1/companies' \
   --data-urlencode page=0 --data-urlencode size=500 \
   --data-urlencode order=asc --data-urlencode "since=$CHECKPOINT"
@@ -73,9 +74,9 @@ curl --fail --get 'http://localhost:8080/v1/companies' \
 
 Follow `next_page` until it is absent. Then return to the mock terminal, press **Enter on an empty line**, and wait for the completed-day confirmation. Repeat the same inclusive command and follow its pages again; it now returns boundary ties plus records touched during the simulated day. Finally, rerun the full-pull command to observe the refreshed current state.
 
-Press Enter only between completed pulls; pagination across a publication is intentionally unsupported. In connector code, derive the checkpoint from the greatest `updated_at` safely emitted, not merely observed. See [`docs/local-mock.md`](docs/local-mock.md) for the complete terminal and process lifecycle.
+Press Enter only between completed pulls; pagination across a publication is intentionally unsupported. In connector code, derive the checkpoint from the greatest change cursor safely emitted (`changed_at` for companies, `updated_at` for others), not merely observed. See [`docs/local-mock.md`](docs/local-mock.md) for the complete terminal and process lifecycle.
 
-Keep this mock process alive for the required validation: for every implemented entity, perform an initial full pull and retrieve at least 10 Enter-driven incremental ticks using the prior emitted state each time. You can retrieve several entities after each Enter press. Your connector process may restart freely; restarting the mock starts a fresh scenario and invalidates old connector checkpoints.
+Keep this mock process alive for the required validation: for all six entities, perform an initial full pull and retrieve at least 10 Enter-driven incremental ticks using the prior emitted state each time. Verify that after remediating any specification discrepancies, runs with `--validate` succeed cleanly across both initial full pulls and incremental runs. You can retrieve several entities after each Enter press. Your connector process may restart freely; restarting the mock starts a fresh scenario and invalidates old connector checkpoints.
 
 Resilience is required: retry `429` and `5xx` responses, honor `Retry-After-Ms`, and fail safely after a documented bounded retry policy. Test this by restarting the matching mock binary with `--enable-fault-profile=true`; the profile is disabled by default and affects `/v1` only. See the assignment and [`docs/local-mock.md`](docs/local-mock.md) for the exact command.
 
